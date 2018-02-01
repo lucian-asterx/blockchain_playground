@@ -1,5 +1,10 @@
-﻿using System;
-using BlockChain.BlockContent;
+﻿using BlockChain.Configuration;
+
+using Microsoft.Extensions.Configuration;
+
+using Serilog;
+
+using StructureMap;
 
 namespace BlockChain
 {
@@ -7,41 +12,44 @@ namespace BlockChain
     {
         private static void Main(string[] args)
         {
-            Console.WriteLine("Hello World!");
+            var configuration = BuildConfiguration();
+            var blockChainConfiguration = configuration.GetSection("BlockChain").Get<BlockChainConfiguration>();
 
-            var chain = new Chain();
+            var container = ConfigureIoC();
+            container.Configure(o => o.For<BlockChainConfiguration>().Use(blockChainConfiguration));
 
-            Console.Write("Mining block ... ");
-            var newBlock = new Block<Kyc>
-            {
-                Content = new Kyc { Header = "kyc" }
-            };
+            var app = container.GetInstance<Application>();
+            app.Run();
+        }
 
-            chain.AddBlock(newBlock);
-            Console.WriteLine(newBlock.Nonce);
+        private static IContainer ConfigureIoC()
+        {
+            var container = new Container(
+                config =>
+                    {
+                        config.Scan(
+                            o =>
+                                {
+                                    o.TheCallingAssembly();
+                                    o.WithDefaultConventions();
+                                });
+                        config.AddRegistry(new CompositionRoot());
+                    });
 
-            Console.Write("Mining block ... ");
-            var newBlock1 = new Block<Transaction>
-            {
-                Content = new Transaction { Header = "transaction" } 
-            };
+            return container;
+        }
 
-            chain.AddBlock(newBlock1);
-            Console.WriteLine(newBlock1.Nonce);
+        private static IConfiguration BuildConfiguration()
+        {
+            var builder = new ConfigurationBuilder()
+                .AddJsonFile("config.json", optional: false, reloadOnChange: true);
+            var configuration = builder.Build();
 
-            Console.WriteLine(chain.ToJson());
+            Log.Logger = new LoggerConfiguration()
+                .ReadFrom.Configuration(configuration)
+                .CreateLogger();
 
-            var isValid = chain.IsValid();
-            if (string.IsNullOrEmpty(isValid.message))
-            {
-                Console.WriteLine($"Is Valid : {isValid.valid}");
-            }
-            else
-            {
-                Console.WriteLine($"Is Valid : {isValid.valid} : {isValid.message}");
-            }
-
-            Console.ReadLine();
+            return configuration;
         }
     }
 }

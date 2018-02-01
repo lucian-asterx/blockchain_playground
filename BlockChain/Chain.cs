@@ -2,18 +2,38 @@
 using System.Linq;
 using System.Text;
 using BlockChain.BlockContent;
+using BlockChain.Configuration;
+
+using Serilog;
 
 namespace BlockChain
 {
-    public class Chain
+    public interface IChain
     {
-        public Chain()
+        void AddBlock(IBlock newBlock);
+
+        (bool valid, string message) IsValid();
+
+        string ToJson();
+    }
+
+    public class Chain : IChain
+    {
+        private readonly ILogger logger;
+
+        public Chain(ILogger logger, BlockChainConfiguration configuration)
         {
-            Difficulty = 4;
+            this.logger = logger;
+            Difficulty = configuration.Difficulty;
+
+            this.logger.Information($"Dificulty set to {this.Difficulty}");
+
             Blocks = new List<IBlock>
             {
                 CreateGenesisBlock()
             };
+
+            this.logger.Information("Genesis bloc generated successfuly");
         }
 
         public IList<IBlock> Blocks { get; }
@@ -39,6 +59,8 @@ namespace BlockChain
             newBlock.PreviousHash = GetLatestBlock().Hash;
             newBlock.Mine(Difficulty);
             Blocks.Add(newBlock);
+
+            this.logger.Information($"Block {newBlock.Id} added succesfully to the chain");
         }
 
         public (bool valid, string message) IsValid()

@@ -1,0 +1,15 @@
+﻿{
+  "Serilog": {
+    "MinimumLevel": "Verbose",
+    "WriteTo": [
+      { "Name": "ColoredConsole" }
+    ],
+    "Properties": {
+      "Project": "BlockChain Playground",
+      "Environment": "Dev"
+    }
+  },
+  "BlockChain" : {
+    "Difficulty" : 4 
+  } 
+}
