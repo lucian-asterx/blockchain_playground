@@ -2,3 +2,5 @@ BlockChain/bin/
 BlockChain/obj/
 .vs/
 BlockChain.v3.ncrunchsolution.user
+BlockChain.Api/bin/
+BlockChain.Api/obj/

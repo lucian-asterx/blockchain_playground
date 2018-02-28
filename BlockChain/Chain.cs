@@ -33,7 +33,7 @@ namespace BlockChain
                 CreateGenesisBlock()
             };
 
-            this.logger.Information("Genesis bloc generated successfuly");
+            this.logger.Information("Genesis block generated successfuly");
         }
 
         public IList<IBlock> Blocks { get; }
