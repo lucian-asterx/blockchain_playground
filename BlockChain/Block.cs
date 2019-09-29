@@ -1,43 +1,28 @@
-﻿using System;
+﻿using BlockChain.Interfaces;
+using Newtonsoft.Json;
+using Serilog;
+using System;
+using System.Diagnostics;
 using System.Linq;
 using System.Security.Cryptography;
 using System.Text;
-using BlockChain.BlockContent;
-using Newtonsoft.Json;
 
 namespace BlockChain
 {
-    public interface IBlock
-    {
-        long Id { get; set; }
-
-        string Hash { get; set; }
-
-        string PreviousHash { get; set; }
-
-        DateTime Timestamp { get; }
-
-        void Mine(int difficulty);
-
-        string CalculateHash();
-
-        string ToJson();
-    }
-
     public class Block<T> : IBlock where T : IBlockContent
     {
         public Block()
         {
-            Timestamp = DateTime.Now;
-            Hash = CalculateHash();
-            PreviousHash = "0";
+            this.Timestamp = DateTime.Now;
+            this.Hash = this.CalculateHash();
+            this.PreviousHash = "0";
         }
 
         public T Content { get; set; }
 
-        public long Nonce { get; set; }
-
         public long Id { get; set; }
+
+        public long Nonce { get; set; }
 
         public string Hash { get; set; }
 
@@ -53,15 +38,15 @@ namespace BlockChain
 
         public override string ToString()
         {
-            var contentJson = JsonConvert.SerializeObject(Content);
-            return $"{Id}:{Nonce}:{contentJson}:{PreviousHash}:{Timestamp}";
+            var contentJson = JsonConvert.SerializeObject(this.Content);
+            return $"{this.Id}:{this.Nonce}:{contentJson}:{this.PreviousHash}:{this.Timestamp}";
         }
 
         public string CalculateHash()
         {
-            var hashstring = new SHA256Managed();
+            using var hashstring = new SHA256Managed();
 
-            var bytes = Encoding.UTF8.GetBytes(ToString());
+            var bytes = Encoding.UTF8.GetBytes(this.ToString());
             var hash = hashstring.ComputeHash(bytes);
 
             return hash.Aggregate(string.Empty, (current, x) => current + $"{x:x2}");
@@ -69,11 +54,15 @@ namespace BlockChain
 
         public void Mine(int difficulty)
         {
-            while (Hash.Substring(0, difficulty) != new string('0', difficulty))
+            Stopwatch stopwatch = new Stopwatch();
+            stopwatch.Start();
+            while (this.Hash.Substring(0, difficulty) != new string('0', difficulty))
             {
-                Nonce++;
-                Hash = CalculateHash();
+                this.Nonce++;
+                this.Hash = this.CalculateHash();
             }
+            stopwatch.Stop();
+            Log.Information($"Elapsed time {stopwatch.ElapsedMilliseconds} ms");
         }
     }
 }

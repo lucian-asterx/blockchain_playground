@@ -1,74 +1,52 @@
-﻿using System.Collections.Generic;
+﻿using BlockChain.BlockContent;
+using BlockChain.Configuration;
+using BlockChain.Interfaces;
+using Serilog;
+using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using BlockChain.BlockContent;
-using BlockChain.Configuration;
-
-using Serilog;
 
 namespace BlockChain
 {
-    public interface IChain
-    {
-        void AddBlock(IBlock newBlock);
-
-        (bool valid, string message) IsValid();
-
-        string ToJson();
-    }
-
     public class Chain : IChain
     {
-        private readonly ILogger logger;
-
-        public Chain(ILogger logger, BlockChainConfiguration configuration)
-        {
-            this.logger = logger;
-            Difficulty = configuration.Difficulty;
-
-            this.logger.Information($"Dificulty set to {this.Difficulty}");
-
-            Blocks = new List<IBlock>
-            {
-                CreateGenesisBlock()
-            };
-
-            this.logger.Information("Genesis block generated successfuly");
-        }
+        private readonly ILogger _logger;
 
         public IList<IBlock> Blocks { get; }
 
         public int Difficulty { get; set; }
 
-        private IBlock CreateGenesisBlock()
+        public Chain(ILogger logger, BlockChainConfiguration configuration)
         {
-            return new Block<Genesis>
-            {
-                Content = new Genesis { Header = "GENESIS" }
-            };
-        }
+            this._logger = logger;
+            this.Difficulty = configuration.Difficulty;
 
-        public IBlock GetLatestBlock()
-        {
-            return Blocks.Last();
+            this._logger.Information($"Dificulty set to {this.Difficulty}");
+
+            this.Blocks = new List<IBlock>
+            {
+                this.CreateGenesisBlock()
+            };
+
+            this._logger.Information("Genesis block generated successfuly");
         }
 
         public void AddBlock(IBlock newBlock)
         {
-            newBlock.Id = GetLatestBlock().Id + 1;
-            newBlock.PreviousHash = GetLatestBlock().Hash;
-            newBlock.Mine(Difficulty);
-            Blocks.Add(newBlock);
+            newBlock.Id = this.GetLatestBlock().Id + 1;
+            newBlock.PreviousHash = this.GetLatestBlock().Hash;
+            newBlock.Mine(this.Difficulty);
+            this.Blocks.Add(newBlock);
 
-            this.logger.Information($"Block {newBlock.Id} added succesfully to the chain");
+            this._logger.Information($"Block {newBlock.Id} added succesfully to the chain");
         }
 
         public (bool valid, string message) IsValid()
         {
-            for (var i = 1; i < Blocks.Count; i++)
+            for (var i = 1; i < this.Blocks.Count; i++)
             {
-                var currentBlock = Blocks[i];
-                var previousBlock = Blocks[i - 1];
+                var currentBlock = this.Blocks[i];
+                var previousBlock = this.Blocks[i - 1];
 
                 if (currentBlock.Hash != currentBlock.CalculateHash())
                 {
@@ -80,6 +58,7 @@ namespace BlockChain
                     return (false, $"Block #{currentBlock.Id} previoushash is not the same as previous block hash");
                 }
             }
+
             return (true, string.Empty);
         }
 
@@ -87,12 +66,25 @@ namespace BlockChain
         {
             var sb = new StringBuilder();
 
-            foreach (var block in Blocks)
+            foreach (var block in this.Blocks)
             {
-                sb.Append($"\n{block.ToJson()}");
+                sb.Append('\n').Append(block.ToJson());
             }
 
             return sb.ToString();
+        }
+
+        private Block<Genesis> CreateGenesisBlock()
+        {
+            return new Block<Genesis>
+            {
+                Content = new Genesis { Header = "GENESIS" }
+            };
+        }
+
+        public IBlock GetLatestBlock()
+        {
+            return this.Blocks.Last();
         }
     }
 }

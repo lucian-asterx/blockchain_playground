@@ -1,4 +1,6 @@
-﻿namespace BlockChain.BlockContent
+﻿using BlockChain.Interfaces;
+
+namespace BlockChain.BlockContent
 {
     public class SmartContract : IBlockContent
     {

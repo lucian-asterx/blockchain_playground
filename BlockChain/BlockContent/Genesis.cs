@@ -1,4 +1,6 @@
-﻿namespace BlockChain.BlockContent
+﻿using BlockChain.Interfaces;
+
+namespace BlockChain.BlockContent
 {
     public class Genesis : IBlockContent
     {

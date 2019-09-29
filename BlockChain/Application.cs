@@ -1,59 +1,62 @@
-﻿using System;
-
-using BlockChain.BlockContent;
-
+﻿using BlockChain.BlockContent;
+using BlockChain.Interfaces;
 using Serilog;
+using System;
 
 namespace BlockChain
 {
     public class Application
     {
-        private readonly IChain chain;
-
-        private readonly ILogger logger;
+        private readonly IChain _chain;
+        private readonly ILogger _logger;
 
         public Application(IChain chain, ILogger logger)
         {
-            this.chain = chain;
-            this.logger = logger;
+            this._chain = chain;
+            this._logger = logger;
         }
 
         public void Run()
         {
-            this.logger.Information("Mining block ... ");
             var newBlock = new Block<Kyc>
-                               {
-                                   Content = new Kyc
-                                                 {
-                                                     Header = "kyc"
-                                                 }
-                               };
-
-            chain.AddBlock(newBlock);
-            this.logger.Information($"Block mined successfuly with nonce : {newBlock.Nonce}");
-
-            this.logger.Information("Mining block ... ");
-            var newBlock1 = new Block<Transaction>
-                                {
-                                    Content = new Transaction
-                                                  {
-                                                      Header = "transaction"
-                                                  }
-                                };
-
-            chain.AddBlock(newBlock1);
-            this.logger.Information($"Block mined successfuly with nonce : {newBlock1.Nonce}");
-
-            this.logger.Information(chain.ToJson());
-
-            var isValid = chain.IsValid();
-            if (string.IsNullOrEmpty(isValid.message))
             {
-                this.logger.Information($"Chain is valid");
+                Content = new Kyc
+                {
+                    Header = "kyc"
+                }
+            };
+            this._chain.AddBlock(newBlock);
+            var newBlock1 = new Block<Transaction>
+            {
+                Content = new Transaction
+                {
+                    Header = "transaction"
+                }
+            };
+            this._chain.AddBlock(newBlock1);
+
+            for (int i = 0; i < 2; i++)
+            {
+                var block = new Block<Transaction>
+                {
+                    Content = new Transaction
+                    {
+                        Header = $"Transaction {i}"
+                    }
+                };
+                this._chain.AddBlock(block);
+            }
+
+            //this._logger.Information(this._chain.ToJson());
+
+            var (valid, message) = this._chain.IsValid();
+            if (valid)
+            {
+                this._logger.Information("Chain is valid");
             }
             else
             {
-                this.logger.Error($"Chain is not valid {isValid.message}");
+                this._logger.Error($"Chain is not valid {message}");
             }
 
             Console.ReadLine();

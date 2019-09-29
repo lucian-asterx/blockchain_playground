@@ -1,4 +1,4 @@
-﻿namespace BlockChain.BlockContent
+﻿namespace BlockChain.Interfaces
 {
     public interface IBlockContent
     {

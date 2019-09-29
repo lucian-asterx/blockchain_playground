@@ -1,5 +1,5 @@
 ﻿using BlockChain.BlockContent;
-
+using BlockChain.Interfaces;
 using Serilog;
 
 using StructureMap;
@@ -10,12 +10,12 @@ namespace BlockChain
     {
         public CompositionRoot()
         {
-            For<ILogger>().Use(o => Log.ForContext(o.ParentType));
+            this.For<ILogger>().Use(o => Log.ForContext(o.ParentType));
 
-            For<IBlockContent>().Use<Genesis>();
-            For<IBlockContent>().Use<Kyc>();
-            For<IBlockContent>().Use<SmartContract>();
-            For<IBlockContent>().Use<Transaction>();
+            this.For<IBlockContent>().Use<Genesis>();
+            this.For<IBlockContent>().Use<Kyc>();
+            this.For<IBlockContent>().Use<SmartContract>();
+            this.For<IBlockContent>().Use<Transaction>();
         }
     }
 }

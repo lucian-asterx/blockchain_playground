@@ -26,15 +26,15 @@ namespace BlockChain
         {
             var container = new Container(
                 config =>
-                    {
-                        config.Scan(
-                            o =>
-                                {
-                                    o.TheCallingAssembly();
-                                    o.WithDefaultConventions();
-                                });
-                        config.AddRegistry(new CompositionRoot());
-                    });
+                {
+                    config.Scan(
+                        o =>
+                        {
+                            o.TheCallingAssembly();
+                            o.WithDefaultConventions();
+                        });
+                    config.AddRegistry(new CompositionRoot());
+                });
 
             return container;
         }
